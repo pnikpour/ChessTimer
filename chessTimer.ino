@@ -52,9 +52,15 @@ unsigned long lastLeftDebounceTime = 0;  // the last time the output pin was tog
 unsigned long lastRightDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long lastMidDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long midBtnLastPressed = 0;
+unsigned long midBtnLastPressedMenu = 0;
 unsigned long pauseTime = 0;
 unsigned long elapsedPauseTime = 0;
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
+int timeControlIndex = 0;
+unsigned long bonusTime = 0;
+unsigned long timeControlArr[] = {300, 600};
+unsigned long bonusTimeArr[] = {0, 0};
 
 
 // the setup function runs once when you press reset or power the board
@@ -91,6 +97,10 @@ void loop() {
   debounceSwitches();
   if (gameStarted == false)
   {
+    if (MID_BTN_STATE == LOW)
+    {
+      onSwitchMidPressMenu();
+    }
     if (LEFT_BTN_STATE == LOW)
     {
       Serial.print("Left pressed; right goes first\n");
@@ -195,6 +205,30 @@ void onSwitchMidPress()
     }
     midBtnLastPressed = millis();
     Serial.print("mid pressed");
+  }
+}
+
+void onSwitchMidPressMenu()
+{
+  if (MID_BTN_STATE == LOW && (millis() - midBtnLastPressedMenu > 200)) // Mid pressed, pause the game
+  {
+    Serial.print("MID PRESSED MENU");
+    buzz();
+    if (timeControlIndex >= 1)
+    {
+      timeControlIndex = 0;
+    }
+    else
+    {
+      timeControlIndex++;
+    }
+
+    chessTimeSecs = timeControlArr[timeControlIndex];
+    bonusTime = bonusTimeArr[timeControlIndex];
+    displayTime(&displayLeft, chessTimeSecs, true);
+    displayTime(&displayRight, chessTimeSecs, true);
+    midBtnLastPressedMenu = millis();
+    
   }
 }
 
