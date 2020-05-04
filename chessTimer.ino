@@ -60,7 +60,7 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 int timeControlIndex = 0;
 unsigned long bonusTime = 0;
 unsigned long timeControlArr[] = {300, 600};
-unsigned long bonusTimeArr[] = {0, 0};
+unsigned long bonusTimeArr[] = {0, 3000};
 
 
 // the setup function runs once when you press reset or power the board
@@ -175,12 +175,13 @@ void onSwitchRightPress()
   if (RIGHT_BTN_STATE == LOW && LEFT_BTN_STATE == HIGH) // Right pressed, make it left's turn
     {
       elapsedPauseTime = 0;
-      updateActualTimePassed();
+      //updateActualTimePassed();
       setLeftLed(HIGH);
       setRightLed(LOW);
       activeSide = LEFT;
       buzz();
       Serial.print("right pressed");
+      incrementRight();
     }
 }
 
@@ -237,12 +238,13 @@ void onSwitchLeftPress()
   if (LEFT_BTN_STATE == LOW && RIGHT_BTN_STATE == HIGH) // Left pressed, make it right's turn
   {
     elapsedPauseTime = 0;
-    updateActualTimePassed();
+    //updateActualTimePassed();
     setRightLed(HIGH);
     setLeftLed(LOW);
     activeSide = RIGHT;
     buzz();
     Serial.print("left pressed");
+    incrementLeft();
   }
 }
 
@@ -313,6 +315,17 @@ unsigned long getActualTimePassedForSide(byte side)
       value += now - lastChangeMs; // -- TODO: handle millis overflow!
     }
   }
+  else
+  {
+    if (side == startingSide)
+    {
+      value += now - startTime - lastChangeMs - bonusTimeArr[timeControlIndex]; // -- TODO: handle millis overflow!
+    }
+    else
+    {
+      value += now - lastChangeMs - bonusTimeArr[timeControlIndex]; // -- TODO: handle millis overflow!
+    }
+  }
   return value;
 }
 
@@ -347,6 +360,16 @@ void displayChessState() {
     lastDisplayedTime = timeLeft;
     lastDisplayedDots = displayDots;
   }
+}
+
+void incrementLeft()
+{
+    timePassedForLeftMs -= bonusTimeArr[timeControlIndex];
+}
+
+void incrementRight()
+{
+    timePassedForRightMs -= bonusTimeArr[timeControlIndex];
 }
 
 void updateActualTimePassed()
