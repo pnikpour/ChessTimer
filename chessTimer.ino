@@ -46,12 +46,14 @@ boolean gameStarted = false;
 boolean gamePaused = false;
 boolean gameFinished = false;
 unsigned long lastLosingBuzzTime = 0;
+unsigned long holdTime = 6000;
 int losingBuzzCount = 0;
 int losingBuzzThreshold = 3;
 unsigned long lastLeftDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long lastRightDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long lastMidDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long midBtnLastPressed = 0;
+unsigned long midBtnLastHeld = 0;
 unsigned long midBtnLastPressedMenu = 0;
 unsigned long pauseTime = 0;
 unsigned long elapsedPauseTime = 0;
@@ -83,10 +85,10 @@ void setup() {
   displayRight.clear();
   displayLeft.setBrightness(5);
   displayRight.setBrightness(5);
-  
+  chessTimeSecs = timeControlArr[0];
   // Set the display initially
-  displayTime(&displayLeft, chessTimeSecs, true);
-  displayTime(&displayRight, chessTimeSecs, true);
+  displayTime(&displayLeft, timeControlArr[0], true);
+  displayTime(&displayRight, timeControlArr[0], true);
   
   buzz();
 }
@@ -188,6 +190,10 @@ void onSwitchMidPress()
 {
   if (MID_BTN_STATE == LOW && (millis() - midBtnLastPressed > 1000)) // Mid pressed, pause the game
   {
+    if (gameFinished)
+    {
+      soft_restart();
+    }
     Serial.print("MID PRESSED");
     buzz();
     buzz();
@@ -204,7 +210,16 @@ void onSwitchMidPress()
       updateActualTimePassed();
     }
     midBtnLastPressed = millis();
+    if (millis() - midBtnLastHeld > holdTime)
+    {
+      Serial.print("SET BUTTON LAST HELD");
+      midBtnLastHeld = millis();
+    }
     Serial.print("mid pressed");
+  }
+  if (MID_BTN_STATE == LOW && millis() - midBtnLastHeld > holdTime)
+  {
+    soft_restart();
   }
 }
 
