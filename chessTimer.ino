@@ -59,8 +59,8 @@ unsigned long pauseTime = 0;
 unsigned long elapsedPauseTime = 0;
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
-int timeControlIndex = 0;
-unsigned long bonusTime = 0;
+int timeControlIndex = 4;
+unsigned long bonusTime = 4;
 unsigned long timeControlArr[] = {60, 120, 180, 240, 300, 360, 420, 480, 540, 600};
 unsigned long bonusTimeArr[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -85,10 +85,10 @@ void setup() {
   displayRight.clear();
   displayLeft.setBrightness(5);
   displayRight.setBrightness(5);
-  chessTimeSecs = timeControlArr[0];
+  chessTimeSecs = timeControlArr[timeControlIndex];
   // Set the display initially
-  displayTime(&displayLeft, timeControlArr[0], true);
-  displayTime(&displayRight, timeControlArr[0], true);
+  displayTime(&displayLeft, chessTimeSecs, true);
+  displayTime(&displayRight, chessTimeSecs, true);
   
   buzz();
 }
