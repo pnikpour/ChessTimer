@@ -46,7 +46,7 @@ boolean gameStarted = false;
 boolean gamePaused = false;
 boolean gameFinished = false;
 unsigned long lastLosingBuzzTime = 0;
-unsigned long holdTime = 6000;
+unsigned long holdTime = 3000;
 int losingBuzzCount = 0;
 int losingBuzzThreshold = 3;
 unsigned long lastLeftDebounceTime = 0;  // the last time the output pin was toggled
@@ -61,8 +61,8 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 
 int timeControlIndex = 0;
 unsigned long bonusTime = 0;
-unsigned long timeControlArr[] = {300, 600};
-unsigned long bonusTimeArr[] = {0, 0};
+unsigned long timeControlArr[] = {60, 120, 180, 240, 300, 360, 420, 480, 540, 600};
+unsigned long bonusTimeArr[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 // the setup function runs once when you press reset or power the board
@@ -229,7 +229,7 @@ void onSwitchMidPressMenu()
   {
     Serial.print("MID PRESSED MENU");
     buzz();
-    if (timeControlIndex >= 1)
+    if (timeControlIndex >= 9)
     {
       timeControlIndex = 0;
     }
@@ -239,6 +239,8 @@ void onSwitchMidPressMenu()
     }
 
     chessTimeSecs = timeControlArr[timeControlIndex];
+    Serial.print("CHESS TIME SECS ");
+    Serial.print(chessTimeSecs);
     bonusTime = bonusTimeArr[timeControlIndex];
     displayTime(&displayLeft, chessTimeSecs, true);
     displayTime(&displayRight, chessTimeSecs, true);
