@@ -45,6 +45,7 @@ unsigned long chessTimeSecs = 300;
 boolean gameStarted = false;
 boolean gamePaused = false;
 boolean gameFinished = false;
+boolean isButtonHeld = false;
 unsigned long lastLosingBuzzTime = 0;
 unsigned long holdTime = 3000;
 int losingBuzzCount = 0;
@@ -214,12 +215,17 @@ void onSwitchMidPress()
     {
       Serial.print("SET BUTTON LAST HELD");
       midBtnLastHeld = millis();
+      isButtonHeld = true;
     }
     Serial.print("mid pressed");
   }
-  if (MID_BTN_STATE == LOW && millis() - midBtnLastHeld > holdTime)
+  if (MID_BTN_STATE == LOW && millis() - midBtnLastHeld > holdTime && isButtonHeld == true)
   {
     soft_restart();
+  }
+  if (MID_BTN_STATE == HIGH)
+  {
+    isButtonHeld = false;
   }
 }
 
