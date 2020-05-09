@@ -46,6 +46,7 @@ boolean gameStarted = false;
 boolean gamePaused = false;
 boolean gameFinished = false;
 boolean isButtonHeld = false;
+boolean blinkSetting = false;
 unsigned long lastLosingBuzzTime = 0;
 unsigned long holdTime = 3000;
 int losingBuzzCount = 0;
@@ -202,6 +203,14 @@ void onSwitchMidPress()
     if (gamePaused)
     {
       pauseTime = millis();
+      if (activeSide == LEFT)
+      {
+        setLeftLed(true);
+      }
+      else
+      {
+        setRightLed(true);
+      }
       //elapsedPauseTime = -1;
     }
     else
@@ -231,7 +240,7 @@ void onSwitchMidPress()
 
 void onSwitchMidPressMenu()
 {
-  if (MID_BTN_STATE == LOW && (millis() - midBtnLastPressedMenu > 200)) // Mid pressed, pause the game
+  if (MID_BTN_STATE == LOW && (midBtnLastPressedMenu > 0 && millis() - midBtnLastPressedMenu > 500)) // Mid pressed, pause the game
   {
     Serial.print("MID PRESSED MENU");
     buzz();
@@ -252,6 +261,26 @@ void onSwitchMidPressMenu()
     displayTime(&displayRight, chessTimeSecs, true);
     midBtnLastPressedMenu = millis();
     
+  }
+  
+  if (MID_BTN_STATE == LOW && (midBtnLastPressedMenu > 0 && millis() - midBtnLastPressedMenu > 200)) // Mid pressed, pause the game
+  {
+    Serial.print("MID PRESSED MENU TOGGLE BLINK");
+    buzz();
+    midBtnLastPressedMenu = millis();
+    blinkSetting = !blinkSetting;
+    displayBlinkToggle();
+    
+    delay(1000);
+    displayTime(&displayLeft, chessTimeSecs, true);
+    displayTime(&displayRight, chessTimeSecs, true);
+    
+  }
+
+  if (MID_BTN_STATE == LOW && midBtnLastPressedMenu <= 0)
+  {
+    buzz();
+    midBtnLastPressedMenu = millis();
   }
 }
 
@@ -317,6 +346,39 @@ void displayTimeNumber(TM1637Display* display, unsigned long number, boolean dot
   display->setSegments(digits, 4, 0);
 }
 
+void displayBlinkToggle()
+{
+  const uint8_t SEG_BLINK[] = {
+  SEG_F | SEG_E | SEG_G | SEG_C | SEG_D,           // b
+  SEG_F | SEG_E | SEG_D,                           // L
+  SEG_C | SEG_E | SEG_G,                           // n
+  SEG_F | SEG_E | SEG_B | SEG_G | SEG_C            // E
+  };
+  
+  const uint8_t SEG_BLINK_OFF[] = {
+  SEG_G | SEG_E | SEG_C | SEG_D,                   // o
+  SEG_A | SEG_F | SEG_E | SEG_G,                   // F
+  SEG_A | SEG_F | SEG_E | SEG_G                   // F
+  };
+  
+  const uint8_t SEG_BLINK_ON[] = {
+  SEG_G | SEG_E | SEG_C | SEG_D,                   // o
+  SEG_C | SEG_E | SEG_G,                           // n
+  };
+
+  
+  displayLeft.setSegments(SEG_BLINK);
+
+  if (blinkSetting)
+  {
+    displayRight.setSegments(SEG_BLINK_ON);
+  }
+  else
+  {
+    displayRight.setSegments(SEG_BLINK_OFF);
+  }
+}
+
 uint8_t addDot(uint8_t digit)
 {
   return digit | 0x80;
@@ -341,11 +403,13 @@ unsigned long getActualTimePassedForSide(byte side)
 
 unsigned long lastDisplayedTime = 0;
 boolean lastDisplayedDots = true;
+boolean lastBlinkedLed = true;
 void displayChessState() {
   TM1637Display* display = activeSide == LEFT ? &displayLeft : &displayRight;
   unsigned long timeMs = getActualTimePassedForSide(activeSide);
   unsigned long timeLeft = chessTimeSecs - timeMs / 1000;
   boolean displayDots = (timeMs / 250) % 2;
+  boolean blinkLed = displayDots;
   if (timeLeft <= 0)
   {
     //setState(STATE_CHESS_FINISHED);
@@ -367,8 +431,22 @@ void displayChessState() {
   if ((timeLeft != lastDisplayedTime) || (lastDisplayedDots != displayDots))
   {
     displayTime(display, timeLeft, displayDots);
+    
     lastDisplayedTime = timeLeft;
     lastDisplayedDots = displayDots;
+    lastBlinkedLed = blinkLed;
+    
+    if (blinkSetting)
+    {
+      if (activeSide == LEFT)
+      {
+        setLeftLed(!blinkLed);
+      }
+      else
+      {
+        setRightLed(!blinkLed);
+      }
+    }
   }
 }
 
