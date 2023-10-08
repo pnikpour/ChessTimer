@@ -57,8 +57,6 @@ unsigned long lastMidDebounceTime = 0;  // the last time the output pin was togg
 unsigned long midBtnLastPressed = 0;
 unsigned long midBtnLastHeld = 0;
 unsigned long midBtnLastPressedMenu = 0;
-unsigned long leftBtnLastPressed = 0;
-unsigned long rightBtnLastPressed = 0;
 unsigned long pauseTime = 0;
 unsigned long elapsedPauseTime = 0;
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
@@ -141,32 +139,12 @@ void loop() {
         {
           displayChessState();
           onSwitchLeftPress();
-
-          // Debounce the right switch so that the add time function is not accidentally called
-          if (millis() - lastChangeMs > 1000)
-          {
-            if (rightBtnLastPressed <= 0)
-            {
-              rightBtnLastPressed = millis();
-            }
-            onSwitchRightPressInactive();
-          }
         }
         else
         if (activeSide == RIGHT)
         {
           displayChessState();
           onSwitchRightPress();
-
-          // Debounce the left switch so that the add time function is not accidentally called
-          if (millis() - lastChangeMs > 1000)
-          {
-            if (leftBtnLastPressed <= 0)
-            {
-              leftBtnLastPressed = millis();
-            }
-            onSwitchLeftPressInactive();
-          }
         }
       }
     }
@@ -199,37 +177,15 @@ void loop() {
 void onSwitchRightPress()
 {
   if (RIGHT_BTN_STATE == LOW && LEFT_BTN_STATE == HIGH) // Right pressed, make it left's turn
-  {
-    elapsedPauseTime = 0;
-    updateActualTimePassed();
-    setLeftLed(HIGH);
-    setRightLed(LOW);
-    activeSide = LEFT;
-    buzz();
-    Serial.print("right pressed");
-  }
-}
-
-void onSwitchLeftPressInactive()
-{
-  if (LEFT_BTN_STATE == LOW && RIGHT_BTN_STATE == HIGH && (millis() - leftBtnLastPressed > 1000)) // Left pressed during right's turn, add 15 sec
-  {
-    timePassedForRightMs -= 15 * 1000;
-    updateActualTimePassed();
-    buzz();
-    leftBtnLastPressed = millis();
-  }
-}
-
-void onSwitchRightPressInactive()
-{
-  if (RIGHT_BTN_STATE == LOW && LEFT_BTN_STATE == HIGH && (millis() - rightBtnLastPressed > 1000)) // Right pressed during right's turn, add 15 sec
-  {
-    timePassedForLeftMs -= 15 * 1000;
-    updateActualTimePassed();
-    buzz();
-    rightBtnLastPressed = millis();
-  }
+    {
+      elapsedPauseTime = 0;
+      updateActualTimePassed();
+      setLeftLed(HIGH);
+      setRightLed(LOW);
+      activeSide = LEFT;
+      buzz();
+      Serial.print("right pressed");
+    }
 }
 
 void onSwitchMidPress()
