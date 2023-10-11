@@ -13,11 +13,11 @@
 #define LED_RIGHT 7
 #define DISP_LEFT_CLK 8
 #define DISP_LEFT_DIO 9
-#define DISP_RIGHT_CLK 10
-#define DISP_RIGHT_DIO 11
-#define BUZZER 12
+#define DISP_RIGHT_CLK 11
+#define DISP_RIGHT_DIO 12
+#define BUZZER 13
 #define RIGHT 0
-#define LEFT 1
+#define LEFT 1 
 
 TM1637Display displayLeft(DISP_LEFT_CLK, DISP_LEFT_DIO);
 TM1637Display displayRight(DISP_RIGHT_CLK, DISP_RIGHT_DIO);
@@ -46,7 +46,7 @@ boolean gameStarted = false;
 boolean gamePaused = false;
 boolean gameFinished = false;
 boolean isButtonHeld = false;
-boolean blinkSetting = false;
+boolean blinkSetting = true;
 unsigned long lastLosingBuzzTime = 0;
 unsigned long holdTime = 3000;
 int losingBuzzCount = 0;
@@ -59,18 +59,19 @@ unsigned long midBtnLastHeld = 0;
 unsigned long midBtnLastPressedMenu = 0;
 unsigned long pauseTime = 0;
 unsigned long elapsedPauseTime = 0;
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 1;    // the debounce time; increase if the output flickers
 
-int timeControlIndex = 4;
+int timeControlIndex = 0;
 unsigned long bonusTime = 4;
-unsigned long timeControlArr[] = {60, 120, 180, 240, 300, 360, 420, 480, 540, 600};
+unsigned long timeControlArr[] = {180, 300, 600, 900};
 unsigned long bonusTimeArr[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   Serial.begin(9600); // For debugging
-  
+  Serial.print("TEST");
+  buzz();
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LEFT, OUTPUT);
   pinMode(RIGHT, OUTPUT);
@@ -155,7 +156,7 @@ void loop() {
         soft_restart();
       }
       TM1637Display* display = activeSide == LEFT ? &displayLeft : &displayRight;
-      if (millis() - lastLosingBuzzTime >= 2000)
+      if (millis() - lastLosingBuzzTime >= 1000)
       {
         displayTimeNumber(display, 0, true);
         buzzLosingSide();
@@ -240,11 +241,11 @@ void onSwitchMidPress()
 
 void onSwitchMidPressMenu()
 {
-  if (MID_BTN_STATE == LOW && (midBtnLastPressedMenu > 0 && millis() - midBtnLastPressedMenu > 500)) // Mid pressed, pause the game
+  if (MID_BTN_STATE == LOW && (midBtnLastPressedMenu > 0 && millis() - midBtnLastPressedMenu > 200)) // Mid pressed
   {
     Serial.print("MID PRESSED MENU");
     buzz();
-    if (timeControlIndex >= 9)
+    if (timeControlIndex >= 3)
     {
       timeControlIndex = 0;
     }
@@ -265,11 +266,7 @@ void onSwitchMidPressMenu()
   
   if (MID_BTN_STATE == LOW && (midBtnLastPressedMenu > 0 && millis() - midBtnLastPressedMenu > 200)) // Mid pressed, pause the game
   {
-    Serial.print("MID PRESSED MENU TOGGLE BLINK");
-    buzz();
     midBtnLastPressedMenu = millis();
-    blinkSetting = !blinkSetting;
-    displayBlinkToggle();
     
     delay(1000);
     displayTime(&displayLeft, chessTimeSecs, true);
